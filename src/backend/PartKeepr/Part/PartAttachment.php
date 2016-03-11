@@ -124,34 +124,33 @@ class PartAttachment extends UploadedFile implements Serializable, Deserializabl
 	 */
 	public function isImage () {
 		if ($this->isImage === null) {
-			$this->isImage = $this->canImagickParseImage();
+			$this->isImage = $this->canGd2ParseImage();
 		}
 		
 		return $this->isImage;
 	}
 	
 	/**
-	 * Checks if ImageMagick can parse the image.
-	 * 
-	 * This method uses ImageMagick to find out if this is an image. Limitations apply; if ImageMagick doesn't support
+	 * Checks if GD2 can parse the image.
+	 *
+	 * This method uses GD2 to find out if this is an image. Limitations apply; if GD2 doesn't support
 	 * the image format, this method would return false, even if it is an image.
-	 * 
-	 * @return boolean true if ImageMagick can parse the file, false otherwise
+	 *
+	 * @return boolean true if GD2 can parse the file, false otherwise
 	 */
-	private function canImagickParseImage () {
+	private function canGd2ParseImage () {
 		/**
-		 * Special case: Check if it's a PDF. If yes, return immediately.
-		 * This is because ImageMagick outputs warning messages for malformed PDF files, and halts the execution
-		 * of the script for several seconds. DO NOT REMOVE!
+		 * Special case: Check if it's a PDF. If yes, return immediately. DO NOT REMOVE!
 		 */
 		if ($this->getMimeType() == "application/pdf") {
 			return false;
 		}
-		
-		try {
-			$im = new \Imagick($this->getFilename());
+
+		list($w, $h) = @getimagesize($this->getFilename());
+
+		if ($w !== null && $h !== null) {
 			return true;
-		} catch (\ImagickException $e) {
+		} else {
 			return false;
 		}
 	}

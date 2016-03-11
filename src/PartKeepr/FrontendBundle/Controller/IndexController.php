@@ -38,23 +38,21 @@ class IndexController extends Controller
 
         $aParameters["maxUploadSize"] = min($maxPostSize, $maxFileSize);
 
-        if (!class_exists("Imagick"))
+        if (!extension_loaded('gd'))
         {
             // @todo This check is deprecated and shouldn't be done here. Sf2 should automatically take care of this
 
             return $this->render('PartKeeprFrontendBundle::error.html.twig',
                 array(
-                    "title" => PartKeepr::i18n("ImageMagick is not installed"),
+                    "title" => PartKeepr::i18n("GD2 is not installed"),
                     "error" => PartKeepr::i18n(
-                        "You are missing the ImageMagick extension. Please install it and restart the setup to verify that the library was installed correctly."
+                        "You are missing the GD2 extension. Please install it and restart the setup to verify that the library was installed correctly."
                     ),
                 )
             );
         }
 
-        /* ImageMagick formats */
-        $imagick = new \Imagick();
-        $aParameters["availableImageFormats"] = $imagick->queryFormats();
+        $aParameters["availableImageFormats"] = $this->getSupportedImageFormats();
 
         /* Automatic Login */
         if (Configuration::getOption("partkeepr.frontend.autologin.enabled", false) === true) {
@@ -81,6 +79,20 @@ class IndexController extends Controller
         $renderParams["models"] = $this->copyModels();
 
         return $this->render('PartKeeprFrontendBundle::index.html.twig', $renderParams);
+    }
+
+    protected function getSupportedImageFormats()
+    {
+        $list = array();
+
+        if (imagetypes() & IMG_GIF)  { $list[] = 'GIF';  }
+        if (imagetypes() & IMG_JPG)  { $list[] = 'JPG';  }
+        if (imagetypes() & IMG_JPEG) { $list[] = 'JPEG'; }
+        if (imagetypes() & IMG_PNG)  { $list[] = 'PNG';  }
+        if (imagetypes() & IMG_WBMP) { $list[] = 'WBMP'; }
+        if (imagetypes() & IMG_XPM)  { $list[] = 'XPM';  }
+
+        return $list;
     }
 
     /**
